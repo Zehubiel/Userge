@@ -1,10 +1,10 @@
 # pylint: disable=missing-module-docstring
 #
-# Copyright (C) 2020 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
+# Copyright (C) 2020-2021 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
 #
 # This file is part of < https://github.com/UsergeTeam/Userge > project,
 # and is released under the "GNU v3.0 License Agreement".
-# Please see < https://github.com/uaudith/Userge/blob/master/LICENSE >
+# Please see < https://github.com/UsergeTeam/Userge/blob/master/LICENSE >
 #
 # All rights reserved.
 
@@ -30,35 +30,34 @@ _LOG = logging.getLogger(__name__)
 _LOG_STR = "<<<!  :::::  %s  :::::  !>>>"
 
 
-def _msg_to_dict(message: RawMessage) -> Dict[str, object]:
-    kwargs_ = vars(message)
-    del message
-    for key_ in ['_client', '_channel', '_filtered', '_process_canceled',
-                 'client', '_filtered_input_str', '_flags', '_kwargs']:
-        if key_ in kwargs_:
-            del kwargs_[key_]
-    return kwargs_
-
-
 class Message(RawMessage):
     """ Modded Message Class For Userge """
     def __init__(self,
-                 client: Union['_client.Userge', '_client._UsergeBot'],
-                 message: RawMessage,
-                 **kwargs: Union[str, bool]) -> None:
-        super().__init__(client=client, **_msg_to_dict(message))
-        self.message_id: int
-        self.reply_to_message: Optional[RawMessage]
-        if self.reply_to_message:
-            self.reply_to_message = self.__class__(self._client, self.reply_to_message)
+                 client: Union['_client.Userge', '_client.UsergeBot'],
+                 mvars: Dict[str, object], module: str, **kwargs: Union[str, bool]) -> None:
         self._filtered = False
-        self._process_canceled = False
-        self._filtered_input_str: str = ''
+        self._filtered_input_str = ''
         self._flags: Dict[str, str] = {}
+        self._process_canceled = False
+        self._module = module
         self._kwargs = kwargs
+        super().__init__(client=client, **mvars)
+
+    @classmethod
+    def parse(cls, client: Union['_client.Userge', '_client.UsergeBot'],
+              message: RawMessage, **kwargs: Union[str, bool]) -> 'Message':
+        """ parse message """
+        mvars = vars(message)
+        for key_ in ['_client', '_filtered', '_filtered_input_str',
+                     '_flags', '_process_canceled', '_module', '_kwargs']:
+            if key_ in mvars:
+                del mvars[key_]
+        if mvars['reply_to_message']:
+            mvars['reply_to_message'] = cls.parse(client, mvars['reply_to_message'], **kwargs)
+        return cls(client, mvars, **kwargs)
 
     @property
-    def client(self) -> Union['_client.Userge', '_client._UsergeBot']:
+    def client(self) -> Union['_client.Userge', '_client.UsergeBot']:
         """ returns client """
         return self._client
 
@@ -129,10 +128,10 @@ class Message(RawMessage):
         if self.reply_to_message:
             if self.reply_to_message.from_user:
                 user_e = self.reply_to_message.from_user.id
-            text = self.input_str
+            text = self.filtered_input_str
             return user_e, text
-        if self.input_str:
-            data = self.input_str.split(maxsplit=1)
+        if self.filtered_input_str:
+            data = self.filtered_input_str.split(maxsplit=1)
             # Grab First Word and Process it.
             if len(data) == 2:
                 user, text = data
@@ -158,23 +157,25 @@ class Message(RawMessage):
         _CANCEL_LIST.append(self.message_id)
 
     def _filter(self) -> None:
-        if not self._filtered:
-            prefix = str(self._kwargs.get('prefix', '-'))
-            del_pre = bool(self._kwargs.get('del_pre', False))
-            input_str = self.input_str
-            for i in input_str.strip().split():
-                match = re.match(f"({prefix}[a-zA-Z]+)([0-9]*)$", i)
-                if match:
-                    items: Sequence[str] = match.groups()
-                    self._flags[items[0].lstrip(prefix).lower() if del_pre
-                                else items[0].lower()] = items[1] or ''
-                else:
-                    self._filtered_input_str += ' ' + i
-            self._filtered_input_str = self._filtered_input_str.strip()
-            _LOG.debug(
-                _LOG_STR,
-                f"Filtered Input String => [ {self._filtered_input_str}, {self._flags} ]")
-            self._filtered = True
+        if self._filtered:
+            return
+
+        prefix = str(self._kwargs.get('prefix', '-'))
+        del_pre = bool(self._kwargs.get('del_pre', False))
+        input_str = self.input_str
+        for i in input_str.strip().split():
+            match = re.match(f"({prefix}[a-zA-Z]+)([0-9]*)$", i)
+            if match:
+                items: Sequence[str] = match.groups()
+                self._flags[items[0].lstrip(prefix).lower() if del_pre
+                            else items[0].lower()] = items[1] or ''
+            else:
+                self._filtered_input_str += ' ' + i
+        self._filtered_input_str = self._filtered_input_str.strip()
+        _LOG.debug(
+            _LOG_STR,
+            f"Filtered Input String => [ {self._filtered_input_str}, {self._flags} ]")
+        self._filtered = True
 
     async def send_as_file(self,
                            text: str,
@@ -213,6 +214,8 @@ class Message(RawMessage):
             else self.message_id
         if delete_message:
             asyncio.get_event_loop().create_task(self.delete())
+        if log and isinstance(log, bool):
+            log = self._module
         return await self._client.send_as_file(chat_id=self.chat.id,
                                                text=text,
                                                filename=filename,
@@ -290,6 +293,8 @@ class Message(RawMessage):
             quote = self.chat.type != "private"
         if reply_to_message_id is None and quote:
             reply_to_message_id = self.message_id
+        if log and isinstance(log, bool):
+            log = self._module
         return await self._client.send_message(chat_id=self.chat.id,
                                                text=text,
                                                del_in=del_in,
@@ -350,6 +355,8 @@ class Message(RawMessage):
         Raises:
             RPCError: In case of a Telegram RPC error.
         """
+        if log and isinstance(log, bool):
+            log = self._module
         try:
             return await self._client.edit_message_text(
                 chat_id=self.chat.id,
@@ -371,7 +378,7 @@ class Message(RawMessage):
                                        disable_web_page_preview=disable_web_page_preview,
                                        reply_markup=reply_markup)
                 if isinstance(msg, Message):
-                    self.message_id = msg.message_id
+                    self.message_id = msg.message_id  # pylint: disable=W0201
                 return msg
             raise m_er
 

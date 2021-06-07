@@ -1,10 +1,10 @@
 """ run shell or python command(s) """
 
-# Copyright (C) 2020 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
+# Copyright (C) 2020-2021 by UsergeTeam@Github, < https://github.com/UsergeTeam >.
 #
 # This file is part of < https://github.com/UsergeTeam/Userge > project,
 # and is released under the "GNU v3.0 License Agreement".
-# Please see < https://github.com/uaudith/Userge/blob/master/LICENSE >
+# Please see < https://github.com/UsergeTeam/Userge/blob/master/LICENSE >
 #
 # All rights reserved.
 
@@ -15,11 +15,12 @@ import keyword
 import traceback
 from getpass import getuser
 from os import geteuid
-
-from pyrogram.errors.exceptions.bad_request_400 import MessageNotModified
+from types import SimpleNamespace
 
 from userge import userge, Message, Config
 from userge.utils import runcmd
+
+CHANNEL = userge.getCLogger()
 
 
 @userge.on_cmd("eval", about={
@@ -49,16 +50,26 @@ async def eval_(message: Message):
     ret_val, stdout, stderr, exc = None, None, None, None
 
     async def aexec(code):
-        head = "async def __aexec(userge, message):\n "
+        head = "async def __aexec(userge, message, replied, old):\n try:\n  "
+        tail = "\n finally: globals()['_OLD'] = locals()"
         if '\n' in code:
-            rest_code = '\n '.join(line for line in code.split('\n'))
-        elif any(True for k_ in keyword.kwlist
-                 if k_ not in ('True', 'False', 'None') and code.startswith(f"{k_} ")):
-            rest_code = f"\n {code}"
+            code = '\n  '.join(iter(code.split('\n')))
+        elif (any(True for k_ in keyword.kwlist
+                  if k_ not in ('True', 'False', 'None') and code.startswith(f"{k_} "))
+              or ('=' in code and '==' not in code)):
+            code = f"\n  {code}"
         else:
-            rest_code = f"\n return {code}"
-        exec(head + rest_code)  # nosec pylint: disable=W0122
-        return await locals()['__aexec'](userge, message)
+            code = f"\n  return {code}"
+        exec(head + code + tail)  # nosec pylint: disable=W0122
+        _old = globals().get('_OLD', {})
+        try:
+            old = _old.pop('old')
+            if not isinstance(old, SimpleNamespace):
+                raise KeyError
+            old.__dict__.update(_old)
+        except KeyError:
+            old = SimpleNamespace(**_old)
+        return await locals()['__aexec'](userge, message, message.reply_to_message, old)
     try:
         ret_val = await aexec(cmd)
     except Exception:  # pylint: disable=broad-except
@@ -71,9 +82,12 @@ async def eval_(message: Message):
     output = ""
     if not silent_mode:
         output += f"**>** ```{cmd}```\n\n"
-    if evaluation:
+    if evaluation is not None:
         output += f"**>>** ```{evaluation}```"
-    if output:
+    if (exc or stderr) and message.chat.type in ("group", "supergroup", "channel"):
+        msg_id = await CHANNEL.log(output)
+        await message.edit(f"**Logs**: {CHANNEL.get_link(msg_id)}")
+    elif output:
         await message.edit_or_send_as_file(text=output,
                                            parse_mode='md',
                                            filename="eval.txt",
@@ -95,7 +109,7 @@ async def exec_(message: Message):
     try:
         out, err, ret, pid = await runcmd(cmd)
     except Exception as t_e:  # pylint: disable=broad-except
-        await message.err(t_e)
+        await message.err(str(t_e))
         return
     out = out or "no output"
     err = err or "no error"
@@ -122,17 +136,14 @@ async def term_(message: Message):
     try:
         t_obj = await Term.execute(cmd)  # type: Term
     except Exception as t_e:  # pylint: disable=broad-except
-        await message.err(t_e)
+        await message.err(str(t_e))
         return
     curruser = getuser()
     try:
         uid = geteuid()
     except ImportError:
         uid = 1
-    if uid == 0:
-        output = f"{curruser}:~# {cmd}\n"
-    else:
-        output = f"{curruser}:~$ {cmd}\n"
+    output = f"{curruser}:~# {cmd}\n" if uid == 0 else f"{curruser}:~$ {cmd}\n"
     count = 0
     while not t_obj.finished:
         count += 1
@@ -146,11 +157,8 @@ async def term_(message: Message):
             out_data = f"<pre>{output}{t_obj.read_line}</pre>"
             await message.try_to_edit(out_data, parse_mode='html')
     out_data = f"<pre>{output}{t_obj.get_output}</pre>"
-    try:
-        await message.edit_or_send_as_file(
-            out_data, parse_mode='html', filename="term.txt", caption=cmd)
-    except MessageNotModified:
-        pass
+    await message.edit_or_send_as_file(
+        out_data, parse_mode='html', filename="term.txt", caption=cmd)
 
 
 async def init_func(message: Message):
@@ -183,11 +191,11 @@ class Term:
 
     @property
     def read_line(self) -> str:
-        return (self._stdout_line + self._stderr_line).decode('utf-8').strip()
+        return (self._stdout_line + self._stderr_line).decode('utf-8', 'replace').strip()
 
     @property
     def get_output(self) -> str:
-        return (self._stdout + self._stderr).decode('utf-8').strip()
+        return (self._stdout + self._stderr).decode('utf-8', 'replace').strip()
 
     async def _read_stdout(self) -> None:
         while True:

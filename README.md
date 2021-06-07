@@ -5,13 +5,13 @@
     <br>
     <b>Pluggable Telegram UserBot</b>
     <br>
+    <a href="https://github.com/UsergeTeam/Userge#documentation-">Documentation</a>
+    &nbsp•&nbsp
     <a href="https://github.com/UsergeTeam/Userge#inspiration-">Inspiration</a>
     &nbsp•&nbsp
     <a href="https://github.com/UsergeTeam/Userge#features-">Features</a>
     &nbsp•&nbsp
     <a href="https://github.com/UsergeTeam/Userge#example-plugin-">Example</a>
-    &nbsp•&nbsp
-    <a href="https://github.com/UsergeTeam/Userge#requirements-">Requirements</a>
     &nbsp•&nbsp
     <a href="https://github.com/UsergeTeam/Userge#project-credits-">Project Credits</a>
     &nbsp•&nbsp
@@ -20,121 +20,49 @@
 
 # Userge 🔥
 
-[![Build Status](https://travis-ci.com/UsergeTeam/Userge.svg?branch=dev)](https://travis-ci.com/UsergeTeam/Userge) ![Python Version](https://img.shields.io/badge/python-3.8-lightgrey) ![Release](https://img.shields.io/github/v/release/UsergeTeam/Userge) ![Stars](https://img.shields.io/github/stars/UsergeTeam/Userge) ![Forks](https://img.shields.io/github/forks/UsergeTeam/Userge) ![Issues Open](https://img.shields.io/github/issues/UsergeTeam/Userge) ![Issues Closed](https://img.shields.io/github/issues-closed/UsergeTeam/Userge) ![PR Open](https://img.shields.io/github/issues-pr/UsergeTeam/Userge) ![PR Closed](https://img.shields.io/github/issues-pr-closed/UsergeTeam/Userge) ![Contributors](https://img.shields.io/github/contributors/UsergeTeam/Userge) ![Repo Size](https://img.shields.io/github/repo-size/UsergeTeam/Userge) ![License](https://img.shields.io/github/license/UsergeTeam/Userge) ![Commit Activity](https://img.shields.io/github/commit-activity/m/UsergeTeam/Userge) [![Plugins Repo!](https://img.shields.io/badge/Plugins%20Repo-!-orange)](https://github.com/UsergeTeam/Userge-Plugins) [![Join Channel!](https://img.shields.io/badge/Join%20Channel-!-red)](https://t.me/theUserge) [![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/UsergeTeam/Userge/?ref=repository-badge)
+[![Build Status](https://travis-ci.com/UsergeTeam/Userge.svg?branch=alpha)](https://travis-ci.com/UsergeTeam/Userge)
+![Python Version](https://img.shields.io/badge/python-3.8/3.9-lightgrey)
+![Release](https://img.shields.io/github/v/release/UsergeTeam/Userge)
+![Stars](https://img.shields.io/github/stars/UsergeTeam/Userge)
+![Forks](https://img.shields.io/github/forks/UsergeTeam/Userge)
+![Issues Open](https://img.shields.io/github/issues/UsergeTeam/Userge)
+![Issues Closed](https://img.shields.io/github/issues-closed/UsergeTeam/Userge)
+![PRs Open](https://img.shields.io/github/issues-pr/UsergeTeam/Userge)
+![PRs Closed](https://img.shields.io/github/issues-pr-closed/UsergeTeam/Userge)
+![Contributors](https://img.shields.io/github/contributors/UsergeTeam/Userge)
+![Repo Size](https://img.shields.io/github/repo-size/UsergeTeam/Userge)
+![License](https://img.shields.io/github/license/UsergeTeam/Userge)
+![Commit Activity](https://img.shields.io/github/commit-activity/m/UsergeTeam/Userge)
+[![Plugins Repo!](https://img.shields.io/badge/Plugins%20Repo-!-orange)](https://github.com/UsergeTeam/Userge-Plugins)
+[![Join Channel!](https://img.shields.io/badge/Join%20Channel-!-red)](https://t.me/theUserge)
+[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/UsergeTeam/Userge/?ref=repository-badge)
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/UsergeTeam/Userge)
 
 > **Userge** is a Powerful , _Pluggable_ Telegram UserBot written in _Python_ using [Pyrogram](https://github.com/pyrogram/pyrogram).
+
+## Documentation 📘
+
+> you can find full documentation [**here**](https://theuserge.github.io)
 
 ## Inspiration 😇
 
 > This project is inspired by the following projects :)
 
 * [tg_userbot](https://github.com/watzon/tg_userbot) ( heavily ) 🤗
-* [PyroGramUserBot](https://github.com/SpEcHiDe/PyroGramUserBot)
+* [PyroGramBot](https://github.com/SpEcHiDe/PyroGramBot)
 * [Telegram-Paperplane](https://github.com/RaphielGang/Telegram-Paperplane)
 * [UniBorg](https://github.com/SpEcHiDe/UniBorg)
 
 > Special Thanks to all of you !!!.
 
-## Features 😍
-
-* Powerful and Very Useful **built-in** Plugins
-  * gdrive [ upload / download / etc ] ( Team Drives Supported! ) 🤥
-  * zip / tar / unzip / untar / unrar
-  * telegram upload / download
-  * pmpermit / afk
-  * notes / filters
-  * split / combine
-  * gadmin
-  * plugin manager
-  * etc...
-* Channel & Group log support
-* Database support
-* Build-in help support
-* Easy to Setup & Use
-* Easy to add / port Plugins
-* Easy to write modules with the modified client
-
-## Example Plugin 🤨
-
-```python
-from userge import userge, Message
-
-LOG = userge.getLogger(__name__)  # logger object
-
-CHANNEL = userge.getCLogger(__name__)  # channel logger object
-
-@userge.on_cmd("test", about="help text to this command")  # adding handler and help text to .test command
-async def testing(message: Message):
-   LOG.info("starting test command...")  # log to console
-
-   await message.edit("testing...", del_in=5)  # this will be automatically deleted after 5 sec
-
-   await CHANNEL.log("testing completed!")  # log to channel
-```
-
-## Requirements 🥴
-
-* Python 3.8 or Higher 👻
-* Telegram [API Keys](https://my.telegram.org/apps)
-* Google Drive [API Keys](https://console.developers.google.com/)
-* MongoDB [Database URL](https://cloud.mongodb.com/)
-
 ## How To Deploy 👷
 
-* **[HEROKU](https://www.heroku.com/) Method** 🔧
 
-  > First click the button below. 
+* [**With Docker 🐳**](https://theuserge.github.io/deployment#deploying-with-docker-)
 
-  > If you don't have HU_STRING_SESSION just ignore it.  
+* [**With Git, Python and pip 🔧**](https://theuserge.github.io/deployment#deploying-with-legacy-method)
 
-  > After Deployed to Heroku first turn off the app (resources -> turn off) and run `bash genStr` in console (more -> run console).  
-
-  > After that copy the string session and past it in Config Vars (settings -> reveal config vars). 
-
-  > Finally turn on the app and check the logs (settings -> view logs) :)
-
-  [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/UsergeTeam/Userge/tree/master)
-
-* **Other Method** 🔧
-
-  ```bash
-  # clone the repo
-  git clone https://github.com/UsergeTeam/Userge.git
-  cd Userge
-
-  # create virtualenv
-  virtualenv -p /usr/bin/python3 venv
-  . ./venv/bin/activate
-
-  # install requirements
-  pip install -r requirements.txt
-
-  # Create config.env as given config.env.sample and fill that
-  cp config.env.sample config.env
-
-  # get string session and add it to config.env
-  bash genStr
-
-  # finally run the Userge ;)
-  bash run
-  ```
-
-* **[More Detailed Guide](https://docs.google.com/document/d/15uoiOn2NkN518MMkx9h5UaMEWMp8aNZqJocXvS0uI6E)** 📝
-
-### Run on Docker 🐳 
-
-1. Install Docker ( [Guide](https://docs.docker.com/engine/install/ubuntu/) )
-2. Clone the repo
-    `git clone https://github.com/UsergeTeam/Userge.git`
-3. `cd Userge`
-4. Create the docker image
-    `docker build -t userge .`
-5. `cd ..`
-6. `wget https://raw.githubusercontent.com/UsergeTeam/Userge/alpha/config.env.sample -O config.env`
-7. Edit the file with your text editor
-    `vi config.env`
-8. Finally run the container
-    `docker run -dv "$(pwd)/config.env:/app/config.env" userge`
+* [**With Zeet ☻**](https://theuserge.github.io/deployment.html#deploying-on-zeet)
 
 ### Video Tutorial 🎥
 
@@ -142,19 +70,14 @@ async def testing(message: Message):
 
 ### Support & Discussions 👥
 
-> Head over to the [Discussion Group](https://t.me/slbotsbugs) and [Update Channel](https://t.me/theUserge)
+> Head over to the [Discussion Group](https://t.me/usergeot) and [Update Channel](https://t.me/theUserge)
 
 ### Project Credits 💆‍♂️
 
 * [Specially to these projects](https://github.com/UsergeTeam/Userge#inspiration-) 🥰
-* [@uaudIth](https://t.me/uaudIth)
-* [@K_E_N_W_A_Y](https://t.me/K_E_N_W_A_Y)
-* [@nawwasl](https://t.me/nawwasl)
-* [@TharukaN97](https://t.me/TharukaN97)
-* [@Supun97](https://t.me/Supun97)
-* [@gotstc](https://t.me/gotstc)
+* [Contributors](https://github.com/UsergeTeam/Userge/graphs/contributors) 👥
 
 ### Copyright & License 👮
 
-* Copyright (C) 2020 by [UsergeTeam](https://github.com/UsergeTeam) ❤️️
+* Copyright (C) 2020 - 2021 by [UsergeTeam](https://github.com/UsergeTeam) ❤️️
 * Licensed under the terms of the [GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007](https://github.com/UsergeTeam/Userge/blob/master/LICENSE)
